@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peppe à Quaglia - Il tuo Buono Sconto</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fdfbf7;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 450px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-top: 5px solid #d4af37;
+        }
+        h1 {
+            color: #2c2c2c;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .warning-box {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .timer-box {
+            background: #fff9e6;
+            border: 2px dashed #d4af37;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .timer-label {
+            font-size: 13px;
+            color: #8c7323;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        #countdown {
+            font-size: 28px;
+            font-weight: bold;
+            color: #b89728;
+            margin-top: 5px;
+        }
+        #remind-msg {
+            font-size: 12px;
+            color: #d9534f;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+        .qr-container {
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Peppe à Quaglia</h1>
+        <div class="subtitle">RISTORANTE & PIZZERIA</div>
+        
+        <div class="warning-box">
+            🚨 <strong>ATTENZIONE:</strong> Non chiudere e non ricaricare questa pagina! Il buono, una volta perso, è perso per sempre.
+        </div>
+
+        <p>Mostra questo QR code alla cassa per convalidare il tuo sconto.</p>
+
+        <div class="timer-box">
+            <div class="timer-label">Il tuo buono scade tra:</div>
+            <div id="countdown">6g 00h 00m 00s</div>
+            <div id="remind-msg"></div>
+        </div>
+
+        <div class="qr-container">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://script.google.com/macros/s/IL_TUO_SCRIPT_ID/exec?azione=convalida" alt="QR Code Convalida">
+        </div>
+
+        <p style="font-size: 12px; color: #888;">Il personale del ristorante scansionerà il codice per applicare l'offerta.</p>
+    </div>
+
+    <script>
+        // Timer conto alla rovescia di 6 giorni in secondi (6 * 24 * 60 * 60)
+        let timeRemaining = 6 * 24 * 60 * 60; 
+        const countdownElement = document.getElementById('countdown');
+        const remindMsgElement = document.getElementById('remind-msg');
+
+        function updateTimer() {
+            const days = Math.floor(timeRemaining / (24 * 60 * 60));
+            const hours = Math.floor((timeRemaining % (24 * 60 * 60)) / (60 * 60));
+            const minutes = Math.floor((timeRemaining % (60 * 60)) / 60);
+            const seconds = timeRemaining % 60;
+
+            countdownElement.textContent = `${days}g ${hours}h ${minutes}m ${seconds}s`;
+
+            // Mostra un promemoria testuale dinamico in base ai giorni trascorsi/rimasti
+            if (days === 5) {
+                remindMsgElement.textContent = "⏰ Promemoria: sono passate 24 ore! Ti restano 5 giorni.";
+            } else if (days === 4) {
+                remindMsgElement.textContent = "⏰ Promemoria: mancano 4 giorni alla scadenza!";
+            } else if (days === 3) {
+                remindMsgElement.textContent = "⏰ Promemoria: siamo a metà del tempo (3 giorni rimasti)!";
+            } else if (days === 2) {
+                remindMsgElement.textContent = "⚠️ Attenzione: mancano solo 2 giorni!";
+            } else if (days === 1) {
+                remindMsgElement.textContent = "🚨 Ultimo giorno utile per usare il buono!";
+            }
+
+            if (timeRemaining > 0) {
+                timeRemaining--;
+            } else {
+                countdownElement.textContent = "SCADUTO";
+                countdownElement.style.color = "#d9534f";
+                remindMsgElement.textContent = "Il buono è scaduto e non è più utilizzabile.";
+            }
+        }
+
+        setInterval(updateTimer, 1000);
+    </script>
+</body>
+</html>
