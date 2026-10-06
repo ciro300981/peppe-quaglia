@@ -70,6 +70,12 @@
         .qr-container {
             margin: 15px 0;
         }
+        #user-id-display {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
@@ -91,14 +97,39 @@
         </div>
 
         <div class="qr-container">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://script.google.com/macros/s/IL_TUO_SCRIPT_ID/exec?azione=convalida" alt="QR Code Convalida">
+            <!-- Il QR code verrà generato dinamicamente qui -->
+            <img id="qr-code-img" src="" alt="QR Code Convalida" style="width: 180px; height: 180px;">
+            <div id="user-id-display"></div>
         </div>
 
         <p style="font-size: 12px; color: #888;">Il personale del ristorante scansionerà il codice per applicare l'offerta.</p>
     </div>
 
     <script>
-        // Timer conto alla rovescia di 6 giorni in secondi (6 * 24 * 60 * 60)
+        // 1. Recupera l'ID dall'URL (es: tuosito.html?id=PQ-12345678)
+        const urlParams = new URLSearchParams(window.location.search);
+        let idBuono = urlParams.get('id');
+
+        // Se l'ID non è presente (es. test manuale), usa un ID temporaneo di prova
+        if (!idBuono) {
+            idBuono = "PQ-TEST-PROVA";
+        }
+
+        // Mostra l'ID a schermo per controllo
+        document.getElementById('user-id-display').textContent = "Codice Buono: " + idBuono;
+
+        // 2. Inserisci l'URL della tua Web App di Google Apps Script qui sotto
+        const webAppUrl = "https://script.google.com/macros/s/IL_TUO_SCRIPT_ID/exec"; 
+
+        // Crea il link di convalida che verrà criptato dentro il QR Code
+        const urlConvalida = webAppUrl + "?azione=convalida&id=" + idBuono;
+
+        // Genera l'immagine del QR code tramite API
+        const qrImgUrl = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(urlConvalida);
+        document.getElementById('qr-code-img').src = qrImgUrl;
+
+
+        // 3. Timer conto alla rovescia di 6 giorni in secondi (6 * 24 * 60 * 60)
         let timeRemaining = 6 * 24 * 60 * 60; 
         const countdownElement = document.getElementById('countdown');
         const remindMsgElement = document.getElementById('remind-msg');
@@ -111,7 +142,6 @@
 
             countdownElement.textContent = `${days}g ${hours}h ${minutes}m ${seconds}s`;
 
-            // Mostra un promemoria testuale dinamico in base ai giorni trascorsi/rimasti
             if (days === 5) {
                 remindMsgElement.textContent = "⏰ Promemoria: sono passate 24 ore! Ti restano 5 giorni.";
             } else if (days === 4) {
