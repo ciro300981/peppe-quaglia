@@ -101,7 +101,7 @@
 <body>
 
     <div class="container">
-        <!-- LOGO AGGIORNATO -->
+        <!-- LOGO -->
         <img src="logo.png" alt="Logo Peppe à Quaglia" class="logo-img" id="logo-restaurant">
 
         <h1>Peppe à Quaglia</h1>
@@ -157,8 +157,8 @@
     </div>
 
     <script>
-        // INSERISCI QUI IL LINK DELLA TUA WEB APP DI APPS SCRIPT (se non lo hai già fatto)
-        const webAppUrl = "https://script.google.com/macros/s/IL_TUO_SCRIPT_ID/exec";
+        // LINK WEB APP AGGIORNATO
+        const webAppUrl = "https://script.google.com/macros/s/AKfycbz-7gZcMyeXdkANY5z-pKxRez6cc7dXfgT86GQ5YYKcH2ruyanue8ng_13eAeiUSCKzmg/exec";
 
         function registraUtente() {
             const nome = document.getElementById('nome').value.trim();
@@ -224,4 +224,19 @@
                 countdownElement.textContent = `${days}g ${hours}h ${minutes}m ${seconds}s`;
 
                 if (days === 5) remindMsgElement.textContent = "⏰ Promemoria: sono passate 24 ore! Ti restano 5 giorni.";
-                else if (days ===
+                else if (days === 4) remindMsgElement.textContent = "⏰ Promemoria: mancano 4 giorni alla scadenza!";
+                else if (days === 3) remindMsgElement.textContent = "⏰ Promemoria: siamo a metà del tempo (3 giorni rimasti)!";
+                else if (days === 2) remindMsgElement.textContent = "⚠️ Attenzione: mancano solo 2 giorni!";
+                else if (days === 1) remindMsgElement.textContent = "🚨 Ultimo giorno utile per usare il buono!";
+
+                if (timeRemaining > 0) timeRemaining--;
+                else {
+                    countdownElement.textContent = "SCADUTO";
+                    countdownElement.style.color = "#d9534f";
+                    remindMsgElement.textContent = "Il buono è scaduto e non è più utilizzabile.";
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
