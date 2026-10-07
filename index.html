@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Peppe à Quaglia - Il tuo Buono Sconto</title>
+    <title>Peppe à Quaglia - Buono Sconto 30%</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -15,23 +15,43 @@
         }
         .container {
             max-width: 450px;
-            margin: 0 auto;
+            margin: 30px auto;
             background: #fff;
             padding: 25px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             border-top: 5px solid #d4af37;
         }
-        h1 {
-            color: #2c2c2c;
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-        .subtitle {
+        h1 { color: #2c2c2c; font-size: 24px; margin-bottom: 5px; }
+        .subtitle { font-size: 14px; color: #666; margin-bottom: 20px; }
+        
+        /* Form di registrazione */
+        .form-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #444; }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
             font-size: 14px;
-            color: #666;
-            margin-bottom: 20px;
+            box-sizing: border-box;
         }
+        button {
+            background-color: #d4af37;
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover { background-color: #b89728; }
+        
+        /* Sezione Buono (nascosta finché non si registra) */
+        #voucher-section { display: none; }
         .warning-box {
             background-color: #f8d7da;
             color: #721c24;
@@ -49,33 +69,10 @@
             border-radius: 8px;
             margin-bottom: 20px;
         }
-        .timer-label {
-            font-size: 13px;
-            color: #8c7323;
-            text-transform: uppercase;
-            font-weight: bold;
-        }
-        #countdown {
-            font-size: 28px;
-            font-weight: bold;
-            color: #b89728;
-            margin-top: 5px;
-        }
-        #remind-msg {
-            font-size: 12px;
-            color: #d9534f;
-            font-weight: bold;
-            margin-top: 8px;
-        }
-        .qr-container {
-            margin: 15px 0;
-        }
-        #user-id-display {
-            font-size: 12px;
-            color: #888;
-            margin-top: 5px;
-            font-family: monospace;
-        }
+        .timer-label { font-size: 13px; color: #8c7323; text-transform: uppercase; font-weight: bold; }
+        #countdown { font-size: 28px; font-weight: bold; color: #b89728; margin-top: 5px; }
+        #remind-msg { font-size: 12px; color: #d9534f; font-weight: bold; margin-top: 8px; }
+        #error-msg { color: #d9534f; font-size: 13px; font-weight: bold; margin-top: 15px; display: none; }
     </style>
 </head>
 <body>
@@ -83,87 +80,126 @@
     <div class="container">
         <h1>Peppe à Quaglia</h1>
         <div class="subtitle">RISTORANTE & PIZZERIA</div>
-        
-        <div class="warning-box">
-            🚨 <strong>ATTENZIONE:</strong> Non chiudere e non ricaricare questa pagina! Il buono, una volta perso, è perso per sempre.
+
+        <!-- FASE 1: Form di Registrazione -->
+        <div id="register-section">
+            <p style="font-size: 14px; color: #555; margin-bottom: 20px;">Inserisci i tuoi dati per ricevere subito il tuo buono sconto esclusivo del 30%!</p>
+            
+            <div class="form-group">
+                <label>Nome e Cognome</label>
+                <input type="text" id="nome" placeholder="es. Mario Rossi" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Numero di Telefono</label>
+                <input type="tel" id="telefono" placeholder="es. 3331234567" required>
+            </div>
+
+            <button onclick="registraUtente()">Ottieni il Mio Buono</button>
+            <div id="error-msg"></div>
         </div>
 
-        <p>Mostra questo QR code alla cassa per convalidare il tuo sconto.</p>
+        <!-- FASE 2: Visualizzazione Buono con Timer e QR Code -->
+        <div id="voucher-section">
+            <div class="warning-box">
+                🚨 <strong>ATTENZIONE:</strong> Non chiudere e non ricaricare questa pagina! Il buono, una volta perso, è perso per sempre.
+            </div>
 
-        <div class="timer-box">
-            <div class="timer-label">Il tuo buono scade tra:</div>
-            <div id="countdown">6g 00h 00m 00s</div>
-            <div id="remind-msg"></div>
+            <p>Mostra questo QR code alla cassa per convalidare il tuo sconto.</p>
+
+            <div class="timer-box">
+                <div class="timer-label">Il tuo buono scade tra:</div>
+                <div id="countdown">6g 00h 00m 00s</div>
+                <div id="remind-msg"></div>
+            </div>
+
+            <div class="qr-container">
+                <img id="qr-code-img" src="" alt="QR Code Convalida" style="width: 180px; height: 180px;">
+                <div id="user-id-display" style="font-size: 12px; color: #888; margin-top: 5px; font-family: monospace;"></div>
+            </div>
+
+            <p style="font-size: 12px; color: #888; margin-top: 15px;">Il personale del ristorante scansionerà il codice per applicare l'offerta.</p>
         </div>
-
-        <div class="qr-container">
-            <!-- Il QR code verrà generato dinamicamente qui -->
-            <img id="qr-code-img" src="" alt="QR Code Convalida" style="width: 180px; height: 180px;">
-            <div id="user-id-display"></div>
-        </div>
-
-        <p style="font-size: 12px; color: #888;">Il personale del ristorante scansionerà il codice per applicare l'offerta.</p>
     </div>
 
     <script>
-        // 1. Recupera l'ID dall'URL (es: tuosito.html?id=PQ-12345678)
-        const urlParams = new URLSearchParams(window.location.search);
-        let idBuono = urlParams.get('id');
+        // INSERISCI QUI IL LINK DELLA TUA WEB APP DI APPS SCRIPT
+        const webAppUrl = "https://script.google.com/macros/s/IL_TUO_SCRIPT_ID/exec";
 
-        // Se l'ID non è presente (es. test manuale), usa un ID temporaneo di prova
-        if (!idBuono) {
-            idBuono = "PQ-TEST-PROVA";
-        }
+        function registraUtente() {
+            const nome = document.getElementById('nome').value.trim();
+            const telefono = document.getElementById('telefono').value.trim();
+            const errorDiv = document.getElementById('error-msg');
 
-        // Mostra l'ID a schermo per controllo
-        document.getElementById('user-id-display').textContent = "Codice Buono: " + idBuono;
-
-        // 2. Inserisci l'URL della tua Web App di Google Apps Script qui sotto
-        const webAppUrl = "https://script.google.com/macros/s/AKfycbz-7gZcMyeXdkANY5z-pKxRez6cc7dXfgT86GQ5YYKcH2ruyanue8ng_13eAeiUSCKzmg/exec"; 
-
-        // Crea il link di convalida che verrà criptato dentro il QR Code
-        const urlConvalida = webAppUrl + "?azione=convalida&id=" + idBuono;
-
-        // Genera l'immagine del QR code tramite API
-        const qrImgUrl = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(urlConvalida);
-        document.getElementById('qr-code-img').src = qrImgUrl;
-
-
-        // 3. Timer conto alla rovescia di 6 giorni in secondi (6 * 24 * 60 * 60)
-        let timeRemaining = 6 * 24 * 60 * 60; 
-        const countdownElement = document.getElementById('countdown');
-        const remindMsgElement = document.getElementById('remind-msg');
-
-        function updateTimer() {
-            const days = Math.floor(timeRemaining / (24 * 60 * 60));
-            const hours = Math.floor((timeRemaining % (24 * 60 * 60)) / (60 * 60));
-            const minutes = Math.floor((timeRemaining % (60 * 60)) / 60);
-            const seconds = timeRemaining % 60;
-
-            countdownElement.textContent = `${days}g ${hours}h ${minutes}m ${seconds}s`;
-
-            if (days === 5) {
-                remindMsgElement.textContent = "⏰ Promemoria: sono passate 24 ore! Ti restano 5 giorni.";
-            } else if (days === 4) {
-                remindMsgElement.textContent = "⏰ Promemoria: mancano 4 giorni alla scadenza!";
-            } else if (days === 3) {
-                remindMsgElement.textContent = "⏰ Promemoria: siamo a metà del tempo (3 giorni rimasti)!";
-            } else if (days === 2) {
-                remindMsgElement.textContent = "⚠️ Attenzione: mancano solo 2 giorni!";
-            } else if (days === 1) {
-                remindMsgElement.textContent = "🚨 Ultimo giorno utile per usare il buono!";
+            if (!nome || !telefono) {
+                errorDiv.style.display = "block";
+                errorDiv.textContent = "Compila tutti i campi obbligatori.";
+                return;
             }
 
-            if (timeRemaining > 0) {
-                timeRemaining--;
-            } else {
-                countdownElement.textContent = "SCADUTO";
-                countdownElement.style.color = "#d9534f";
-                remindMsgElement.textContent = "Il buono è scaduto e non è più utilizzabile.";
-            }
+            errorDiv.style.display = "none";
+            document.querySelector('button').textContent = "Generazione in corso...";
+
+            // Chiamata AJAX verso Google Apps Script per registrare e verificare il numero
+            fetch(webAppUrl + "?azione=registra&nome=" + encodeURIComponent(nome) + "&telefono=" + encodeURIComponent(telefono))
+                .then(response => response.text())
+                .then(result => {
+                    if (result.startsWith("ERRORE:")) {
+                        document.querySelector('button').textContent = "Ottieni il Mio Buono";
+                        errorDiv.style.display = "block";
+                        errorDiv.textContent = result.replace("ERRORE: ", "");
+                    } else {
+                        // Risultato atteso: ID_BUONO|DATA_SCADENZA
+                        const parti = result.split("|");
+                        const idBuono = parti[0];
+                        
+                        // Mostra la sezione del buono e avvia il timer
+                        document.getElementById('register-section').style.display = "none";
+                        document.getElementById('voucher-section').style.display = "block";
+                        document.getElementById('user-id-display').textContent = "Codice Buono: " + idBuono;
+
+                        // Genera QR Code collegato alla convalida
+                        const urlConvalida = webAppUrl + "?azione=convalida&id=" + idBuono;
+                        document.getElementById('qr-code-img').src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(urlConvalida);
+
+                        // Avvia countdown
+                        avviaTimer();
+                    }
+                })
+                .catch(err => {
+                    document.querySelector('button').textContent = "Ottieni il Mio Buono";
+                    errorDiv.style.display = "block";
+                    errorDiv.textContent = "Errore di connessione. Riprova.";
+                });
         }
 
-        setInterval(updateTimer, 1000);
+        function avviaTimer() {
+            let timeRemaining = 6 * 24 * 60 * 60; // 6 giorni in secondi
+            const countdownElement = document.getElementById('countdown');
+            const remindMsgElement = document.getElementById('remind-msg');
+
+            setInterval(() => {
+                const days = Math.floor(timeRemaining / (24 * 60 * 60));
+                const hours = Math.floor((timeRemaining % (24 * 60 * 60)) / (60 * 60));
+                const minutes = Math.floor((timeRemaining % (60 * 60)) / 60);
+                const seconds = timeRemaining % 60;
+
+                countdownElement.textContent = `${days}g ${hours}h ${minutes}m ${seconds}s`;
+
+                if (days === 5) remindMsgElement.textContent = "⏰ Promemoria: sono passate 24 ore! Ti restano 5 giorni.";
+                else if (days === 4) remindMsgElement.textContent = "⏰ Promemoria: mancano 4 giorni alla scadenza!";
+                else if (days === 3) remindMsgElement.textContent = "⏰ Promemoria: siamo a metà del tempo (3 giorni rimasti)!";
+                else if (days === 2) remindMsgElement.textContent = "⚠️ Attenzione: mancano solo 2 giorni!";
+                else if (days === 1) remindMsgElement.textContent = "🚨 Ultimo giorno utile per usare il buono!";
+
+                if (timeRemaining > 0) timeRemaining--;
+                else {
+                    countdownElement.textContent = "SCADUTO";
+                    countdownElement.style.color = "#d9534f";
+                    remindMsgElement.textContent = "Il buono è scaduto e non è più utilizzabile.";
+                }
+            }, 1000);
+        }
     </script>
 </body>
 </html>
