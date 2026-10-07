@@ -22,13 +22,21 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             border-top: 5px solid #d4af37;
         }
+        .logo-img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-bottom: 10px;
+            border: 2px solid #d4af37;
+        }
         h1 { color: #2c2c2c; font-size: 24px; margin-bottom: 5px; }
         .subtitle { font-size: 14px; color: #666; margin-bottom: 20px; }
         
         /* Form di registrazione */
         .form-group { margin-bottom: 15px; text-align: left; }
         label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #444; }
-        input {
+        input[type="text"], input[type="tel"] {
             width: 100%;
             padding: 12px;
             border: 1px solid #ddd;
@@ -36,6 +44,21 @@
             font-size: 14px;
             box-sizing: border-box;
         }
+        
+        /* Checkbox Privacy GDPR */
+        .privacy-group {
+            display: flex;
+            align-items: flex-start;
+            text-align: left;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: #555;
+        }
+        .privacy-group input {
+            margin-top: 2px;
+            margin-right: 8px;
+        }
+
         button {
             background-color: #d4af37;
             color: white;
@@ -78,6 +101,9 @@
 <body>
 
     <div class="container">
+        <!-- LOGO: Sostituisci il link qui sotto con l'indirizzo del tuo logo o metti 'logo.png' se lo carichi nella stessa cartella -->
+        <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=150" alt="Logo Peppe à Quaglia" class="logo-img" id="logo-restaurant">
+
         <h1>Peppe à Quaglia</h1>
         <div class="subtitle">RISTORANTE & PIZZERIA</div>
 
@@ -93,6 +119,14 @@
             <div class="form-group">
                 <label>Numero di Telefono</label>
                 <input type="tel" id="telefono" placeholder="es. 3331234567" required>
+            </div>
+
+            <!-- SPUNTA PRIVACY GDPR OBBLIGATORIA -->
+            <div class="privacy-group">
+                <input type="checkbox" id="privacy-check" required>
+                <label for="privacy-check" style="font-weight: normal; font-size: 12px; color: #666;">
+                    Acconsento al trattamento dei dati personali ai sensi del GDPR (Regolamento UE 2016/679) per l'invio del buono sconto e comunicazioni commerciali di Peppe à Quaglia.
+                </label>
             </div>
 
             <button onclick="registraUtente()">Ottieni il Mio Buono</button>
@@ -129,11 +163,18 @@
         function registraUtente() {
             const nome = document.getElementById('nome').value.trim();
             const telefono = document.getElementById('telefono').value.trim();
+            const privacyChecked = document.getElementById('privacy-check').checked;
             const errorDiv = document.getElementById('error-msg');
 
             if (!nome || !telefono) {
                 errorDiv.style.display = "block";
                 errorDiv.textContent = "Compila tutti i campi obbligatori.";
+                return;
+            }
+
+            if (!privacyChecked) {
+                errorDiv.style.display = "block";
+                errorDiv.textContent = "Devi accettare l'informativa sulla privacy per continuare.";
                 return;
             }
 
@@ -149,20 +190,16 @@
                         errorDiv.style.display = "block";
                         errorDiv.textContent = result.replace("ERRORE: ", "");
                     } else {
-                        // Risultato atteso: ID_BUONO|DATA_SCADENZA
                         const parti = result.split("|");
                         const idBuono = parti[0];
                         
-                        // Mostra la sezione del buono e avvia il timer
                         document.getElementById('register-section').style.display = "none";
                         document.getElementById('voucher-section').style.display = "block";
                         document.getElementById('user-id-display').textContent = "Codice Buono: " + idBuono;
 
-                        // Genera QR Code collegato alla convalida
                         const urlConvalida = webAppUrl + "?azione=convalida&id=" + idBuono;
                         document.getElementById('qr-code-img').src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(urlConvalida);
 
-                        // Avvia countdown
                         avviaTimer();
                     }
                 })
@@ -174,7 +211,7 @@
         }
 
         function avviaTimer() {
-            let timeRemaining = 6 * 24 * 60 * 60; // 6 giorni in secondi
+            let timeRemaining = 6 * 24 * 60 * 60; 
             const countdownElement = document.getElementById('countdown');
             const remindMsgElement = document.getElementById('remind-msg');
 
