@@ -162,10 +162,10 @@
             <div class="voucher-card">
                 <img id="qr-code-img" src="" alt="QR Code Buono" style="max-width: 180px; height: auto;">
                 
-                <!-- CONDIZIONI DEL BUONO -->
+                <!-- CONDIZIONI DEL BUONO AGGIORNATE -->
                 <div style="background-color: #fff; border: 1px solid #e2d4bc; border-radius: 6px; padding: 12px; margin-top: 15px; text-align: left; font-size: 11px; color: #444; line-height: 1.4;">
                     <strong style="display: block; margin-bottom: 4px; color: #b8860b;">Condizioni del Buono:</strong>
-                    Questo sconto è nominativo, riservato solo a te e non cedibile a terzi. Se lo useranno altri non potrai averne un altro. Il buono va usato dal lunedì al venerdì (1 sola volta).
+                    Questo sconto è nominativo, riservato solo a te e non cedibile a terzi. Se lo useranno altri non potrai averne un altro. Il buono va usato dal lunedì al venerdì (1 sola volta). Il buono una volta scaduto e non usato andrà perso definitivamente.
                 </div>
             </div>
 
@@ -174,7 +174,6 @@
     </div>
 
     <script>
-        // URL aggiornato della Web App di Google Apps Script (Regina Farina)
         const webAppUrl = "https://script.google.com/macros/s/AKfycbzWgRRk_0pbGe8YU9NG3NsKIZxCZQFhzbpVMRBDob4yTdGHfgBfC_t8KVa_z0I0VbOIAw/exec";
 
         function registraUtente() {
@@ -227,7 +226,7 @@
         }
 
         function avviaTimer() {
-            let tempoRimanente = 6 * 24 * 60 * 60; // 6 giorni in secondi
+            let tempoRimanente = 6 * 24 * 60 * 60;
             const timerDisplay = document.getElementById('countdown');
 
             setInterval(() => {
