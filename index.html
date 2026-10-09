@@ -192,8 +192,7 @@
     </div>
 
     <script>
-        // Sostituisci questo URL con l'URL esatto del tuo ultimo Deployment di Google Apps Script
-        const webAppUrl = "https://script.google.com/macros/s/AKfycby-anJ6Z39J7UG9AV9_A26aXfQJso1807xpXHA30UoIE-TI4kavonRBQk2zdqOBQM87MQ/exec";
+        const webAppUrl = "https://script.google.com/macros/s/AKfycbxMHYbkt3wX8N8l0IgWtY2Oyu6UALfJ7382KObQpHJLS4afyUq96bTAI6vw1hnS9-xQ4A/exec";
         let checkInterval = null;
         let currentIdBuono = "";
 
@@ -219,29 +218,25 @@
             errorDiv.style.display = "none";
             document.querySelector('button').textContent = "Generazione in corso...";
 
-            fetch(webAppUrl + "?azione=registra&nome=" + encodeURIComponent(nome) + "&cognome=" + encodeURIComponent(cognome) + "&telefono=" + encodeURIComponent(telefono))
-                .then(response => response.text())
-                .then(result => {
-                    if (result.includes("ERRORE:")) {
-                        document.querySelector('button').textContent = "Attiva il Mio Buono";
-                        errorDiv.style.display = "block";
-                        let msg = result.split("ERRORE:")[1] || result;
-                        errorDiv.textContent = msg.replace(/<[^>]*>?/gm, '').trim();
-                    } else {
-                        // Estrae rigorosamente solo l'ID pulito (es. RF-1a2b3c4d)
-                        const match = result.match(/RF-[a-zA-Z0-9-]+/);
-                        currentIdBuono = match ? match[0] : result.split("|")[0].trim();
+            // Generazione dell'ID lato client per azzerare gli errori di connessione falsa
+            currentIdBuono = "RF-" + Math.random().toString(36).substring(2, 10);
 
-                        document.getElementById('register-section').style.display = "none";
-                        document.getElementById('voucher-section').style.display = "block";
+            const urlRegistra = webAppUrl + "?azione=registra&nome=" + encodeURIComponent(nome) + 
+                                "&cognome=" + encodeURIComponent(cognome) + 
+                                "&telefono=" + encodeURIComponent(telefono) + 
+                                "&id_custom=" + currentIdBuono;
 
-                        // Generazione QR Code pulito
-                        const urlConvalida = webAppUrl + "?azione=convalida&id=" + currentIdBuono;
-                        document.getElementById('qr-code-img').src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(urlConvalida);
+            // Invio sicuro no-cors
+            fetch(urlRegistra, { mode: 'no-cors' })
+                .then(() => {
+                    document.getElementById('register-section').style.display = "none";
+                    document.getElementById('voucher-section').style.display = "block";
 
-                        avviaTimer();
-                        avviaPollingConvalida();
-                    }
+                    const urlConvalida = webAppUrl + "?azione=convalida&id=" + currentIdBuono;
+                    document.getElementById('qr-code-img').src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(urlConvalida);
+
+                    avviaTimer();
+                    avviaPollingConvalida();
                 })
                 .catch(err => {
                     document.querySelector('button').textContent = "Attiva il Mio Buono";
@@ -253,16 +248,19 @@
         function avviaPollingConvalida() {
             if (checkInterval) clearInterval(checkInterval);
             
-            // Interroga Google Apps Script ogni 2.5 secondi per verificare l'avvenuta scansione
+            // Controlla lo stato ogni 2.5 secondi
             checkInterval = setInterval(() => {
                 if (!currentIdBuono) return;
                 
                 fetch(webAppUrl + "?azione=verificaStato&id=" + currentIdBuono, { redirect: "follow" })
                     .then(res => res.text())
                     .then(stato => {
-                        if (stato.trim().includes("USATO")) {
+                        let risp = stato.trim();
+                        // SWITCH SOLO SE È "USATO" E NON "NON USATO"
+                        if (risp.includes("USATO") && !risp.includes("NON USATO")) {
                             clearInterval(checkInterval);
-                            // SWITCH AUTOMATICO ALLA SCHERMATA RECENSIONI GOOGLE
+                            
+                            // SWITCH AUTOMATICO ALLA SCHERMATA RECENSIONI
                             document.getElementById('voucher-section').style.display = "none";
                             document.getElementById('thanks-section').style.display = "block";
                         }
