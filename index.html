@@ -138,29 +138,35 @@
             <h2>Buono Sconto 30%</h2>
             <p>Inserisci i tuoi dati per attivare subito il tuo buono sconto esclusivo per te e la tua famiglia!</p>
             
-            <div class="form-group">
-                <label>Nome</label>
-                <input type="text" id="nome" placeholder="es. Mario" required>
-            </div>
+            <form id="reg-form" action="https://script.google.com/macros/s/AKfycbyXtyEP-QDK1c726vGecD7HiOlbaXun4sltbCF1Myifkvv52ntFea4IKQNxHTl90lKS3Q/exec" method="GET" target="hidden_iframe" onsubmit="inviaDati(event)">
+                <input type="hidden" name="azione" value="registra">
+                <input type="hidden" id="id_custom" name="id_custom" value="">
 
-            <div class="form-group">
-                <label>Cognome</label>
-                <input type="text" id="cognome" placeholder="es. Rossi" required>
-            </div>
-            
-            <div class="form-group">
-                <label>Numero di Telefono</label>
-                <input type="tel" id="telefono" placeholder="es. 3331234567" required>
-            </div>
+                <div class="form-group">
+                    <label>Nome</label>
+                    <input type="text" id="nome" name="nome" placeholder="es. Mario" required>
+                </div>
 
-            <div class="privacy-group">
-                <input type="checkbox" id="privacy-check" required>
-                <label for="privacy-check">
-                    Acconsento al trattamento dei dati personali ai sensi del GDPR (Regolamento UE 2016/679) per l'invio del buono sconto e comunicazioni commerciali da parte di Regina Farina.
-                </label>
-            </div>
+                <div class="form-group">
+                    <label>Cognome</label>
+                    <input type="text" id="cognome" name="cognome" placeholder="es. Rossi" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Numero di Telefono</label>
+                    <input type="tel" id="telefono" name="telefono" placeholder="es. 3331234567" required>
+                </div>
 
-            <button onclick="registraUtente()">Attiva il Mio Buono</button>
+                <div class="privacy-group">
+                    <input type="checkbox" id="privacy-check" required>
+                    <label for="privacy-check">
+                        Acconsento al trattamento dei dati personali ai sensi del GDPR (Regolamento UE 2016/679) per l'invio del buono sconto e comunicazioni commerciali da parte di Regina Farina.
+                    </label>
+                </div>
+
+                <button type="submit" id="btn-submit">Attiva il Mio Buono</button>
+            </form>
+
             <div id="error-msg"></div>
         </div>
 
@@ -190,12 +196,15 @@
         </div>
     </div>
 
+    <!-- Frame invisibile per bypassare il blocco CORS -->
+    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+
     <script>
         const webAppUrl = "https://script.google.com/macros/s/AKfycbyXtyEP-QDK1c726vGecD7HiOlbaXun4sltbCF1Myifkvv52ntFea4IKQNxHTl90lKS3Q/exec";
         let checkInterval = null;
         let currentIdBuono = "";
 
-        function registraUtente() {
+        function inviaDati(event) {
             const nome = document.getElementById('nome').value.trim();
             const cognome = document.getElementById('cognome').value.trim();
             const telefono = document.getElementById('telefono').value.trim();
@@ -203,49 +212,39 @@
             const errorDiv = document.getElementById('error-msg');
 
             if (!nome || !cognome || !telefono) {
+                event.preventDefault();
                 errorDiv.style.display = "block";
                 errorDiv.textContent = "Compila tutti i campi obbligatori.";
-                return;
+                return false;
             }
 
             if (!privacyChecked) {
+                event.preventDefault();
                 errorDiv.style.display = "block";
                 errorDiv.textContent = "Accetta l'informativa privacy.";
-                return;
+                return false;
             }
 
             errorDiv.style.display = "none";
-            document.querySelector('button').textContent = "Generazione in corso...";
+            document.getElementById('btn-submit').textContent = "Generazione in corso...";
 
-            const urlReg = webAppUrl + "?azione=registra&nome=" + encodeURIComponent(nome) + 
-                           "&cognome=" + encodeURIComponent(cognome) + 
-                           "&telefono=" + encodeURIComponent(telefono);
+            // Genera l'ID univoco e lo assegna al form
+            currentIdBuono = "RF-" + Math.random().toString(36).substring(2, 10);
+            document.getElementById('id_custom').value = currentIdBuono;
 
-            fetch(urlReg)
-                .then(res => res.json())
-                .then(data => {
-                    if (!data.success) {
-                        document.querySelector('button').textContent = "Attiva il Mio Buono";
-                        errorDiv.style.display = "block";
-                        errorDiv.textContent = data.error || "Errore di registrazione.";
-                    } else {
-                        currentIdBuono = data.id;
+            // Mostra la sezione QR Code
+            setTimeout(() => {
+                document.getElementById('register-section').style.display = "none";
+                document.getElementById('voucher-section').style.display = "block";
 
-                        document.getElementById('register-section').style.display = "none";
-                        document.getElementById('voucher-section').style.display = "block";
+                const urlConvalida = webAppUrl + "?azione=convalida&id=" + currentIdBuono;
+                document.getElementById('qr-code-img').src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(urlConvalida);
 
-                        const urlConvalida = webAppUrl + "?azione=convalida&id=" + currentIdBuono;
-                        document.getElementById('qr-code-img').src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(urlConvalida);
+                avviaTimer();
+                avviaPollingConvalida();
+            }, 600);
 
-                        avviaTimer();
-                        avviaPollingConvalida();
-                    }
-                })
-                .catch(err => {
-                    document.querySelector('button').textContent = "Attiva il Mio Buono";
-                    errorDiv.style.display = "block";
-                    errorDiv.textContent = "Errore di connessione. Riprova.";
-                });
+            return true;
         }
 
         function avviaPollingConvalida() {
