@@ -201,18 +201,31 @@
             fetch(webAppUrl + "?azione=registra&nome=" + encodeURIComponent(nome) + "&cognome=" + encodeURIComponent(cognome) + "&telefono=" + encodeURIComponent(telefono))
                 .then(response => response.text())
                 .then(result => {
-                    if (result.startsWith("ERRORE:")) {
+                    if (result.includes("ERRORE:")) {
                         document.querySelector('button').textContent = "Attiva il Mio Buono";
                         errorDiv.style.display = "block";
-                        errorDiv.textContent = result.replace("ERRORE: ", "");
+                        // Estrae il messaggio di errore pulito
+                        let msgErrore = result.split("ERRORE:")[1] || result;
+                        errorDiv.textContent = msgErrore.replace(/<[^>]*>?/gm, '').trim();
                     } else {
-                        const parti = result.split("|");
-                        const idBuono = parti[0];
+                        // ESTRAZIONE SICURA DELL'ID BUONO (Trova il codice RF-xxxxxxxx)
+                        let idBuono = "";
+                        const match = result.match(/RF-[a-zA-Z0-9-]+/);
                         
+                        if (match) {
+                            idBuono = match[0];
+                        } else {
+                            // Fallback in caso di risposta pura senza HTML
+                            idBuono = result.split("|")[0].trim();
+                        }
+
                         document.getElementById('register-section').style.display = "none";
                         document.getElementById('voucher-section').style.display = "block";
 
+                        // Costruzione dell'URL di Convalida PULITO
                         const urlConvalida = webAppUrl + "?azione=convalida&id=" + idBuono;
+                        
+                        // Generazione QR Code
                         document.getElementById('qr-code-img').src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(urlConvalida);
 
                         avviaTimer();
