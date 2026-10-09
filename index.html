@@ -131,6 +131,7 @@
 <body>
 
     <div class="container">
+        <!-- Logo ufficiale di Regina Farina -->
         <img src="logo.png" alt="Regina Farina Logo" class="logo">
 
         <!-- FASE 1: Form di Registrazione -->
@@ -164,7 +165,7 @@
             <div id="error-msg"></div>
         </div>
 
-        <!-- FASE 2: Visualizzazione QR Code -->
+        <!-- FASE 2: Visualizzazione QR Code con Polling Attivo -->
         <div id="voucher-section">
             <h2>Il tuo Buono è Attivo!</h2>
             <p>Mostra questo QR Code in cassa al nostro staff.</p>
@@ -181,7 +182,7 @@
             <div class="timer" id="countdown">Scadenza tra: 6 giorni 00:00:00</div>
         </div>
 
-        <!-- FASE 3: Schermata SWITCH dopo la Scansione -->
+        <!-- FASE 3: Schermata SWITCH dopo la Scansione in Cassa -->
         <div id="thanks-section">
             <h2 style="color: #2e7d32;">🎉 Grazie per la visita!</h2>
             <p>Il tuo buono è stato convalidato con successo alla cassa.</p>
@@ -191,7 +192,8 @@
     </div>
 
     <script>
-        const webAppUrl = "https://script.google.com/macros/s/AKfycbxXGgdsDJ68flP6TK1HB3pSPMt-m6eKFf8htwJCElBcS7cYgN21yNe_YfwxWh88wASC4g/exec";
+        // Sostituisci questo URL con l'URL esatto del tuo ultimo Deployment di Google Apps Script
+        const webAppUrl = "https://script.google.com/macros/s/AKfycby-anJ6Z39J7UG9AV9_A26aXfQJso1807xpXHA30UoIE-TI4kavonRBQk2zdqOBQM87MQ/exec";
         let checkInterval = null;
         let currentIdBuono = "";
 
@@ -210,7 +212,7 @@
 
             if (!privacyChecked) {
                 errorDiv.style.display = "block";
-                errorDiv.textContent = "Accetta la privacy per proseguire.";
+                errorDiv.textContent = "Accetta l'informativa privacy.";
                 return;
             }
 
@@ -226,12 +228,14 @@
                         let msg = result.split("ERRORE:")[1] || result;
                         errorDiv.textContent = msg.replace(/<[^>]*>?/gm, '').trim();
                     } else {
+                        // Estrae rigorosamente solo l'ID pulito (es. RF-1a2b3c4d)
                         const match = result.match(/RF-[a-zA-Z0-9-]+/);
                         currentIdBuono = match ? match[0] : result.split("|")[0].trim();
 
                         document.getElementById('register-section').style.display = "none";
                         document.getElementById('voucher-section').style.display = "block";
 
+                        // Generazione QR Code pulito
                         const urlConvalida = webAppUrl + "?azione=convalida&id=" + currentIdBuono;
                         document.getElementById('qr-code-img').src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(urlConvalida);
 
@@ -247,22 +251,24 @@
         }
 
         function avviaPollingConvalida() {
-            // Controlla lo stato del buono ogni 3 secondi
+            if (checkInterval) clearInterval(checkInterval);
+            
+            // Interroga Google Apps Script ogni 2.5 secondi per verificare l'avvenuta scansione
             checkInterval = setInterval(() => {
                 if (!currentIdBuono) return;
                 
-                fetch(webAppUrl + "?azione=verificaStato&id=" + currentIdBuono)
+                fetch(webAppUrl + "?azione=verificaStato&id=" + currentIdBuono, { redirect: "follow" })
                     .then(res => res.text())
                     .then(stato => {
-                        if (stato.trim() === "USATO") {
-                            clearInterval(checkInterval); // Ferma il controllo
-                            // SWITCH Schermata!
+                        if (stato.trim().includes("USATO")) {
+                            clearInterval(checkInterval);
+                            // SWITCH AUTOMATICO ALLA SCHERMATA RECENSIONI GOOGLE
                             document.getElementById('voucher-section').style.display = "none";
                             document.getElementById('thanks-section').style.display = "block";
                         }
                     })
                     .catch(e => console.log(e));
-            }, 3000);
+            }, 2500);
         }
 
         function avviaTimer() {
