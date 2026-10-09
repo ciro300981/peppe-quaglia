@@ -98,7 +98,7 @@
             margin-top: 10px;
             display: none;
         }
-        #voucher-section {
+        #voucher-section, #thanks-section {
             display: none;
         }
         .voucher-card {
@@ -114,12 +114,23 @@
             font-size: 16px;
             margin-top: 15px;
         }
+        .btn-google {
+            display: inline-block;
+            background-color: #4285F4;
+            color: white;
+            text-decoration: none;
+            padding: 14px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 15px;
+            margin-top: 15px;
+            box-shadow: 0 4px 10px rgba(66,133,244,0.3);
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Logo ufficiale di Regina Farina -->
         <img src="logo.png" alt="Regina Farina Logo" class="logo">
 
         <!-- FASE 1: Form di Registrazione -->
@@ -142,7 +153,6 @@
                 <input type="tel" id="telefono" placeholder="es. 3331234567" required>
             </div>
 
-            <!-- SPUNTA PRIVACY GDPR OBBLIGATORIA -->
             <div class="privacy-group">
                 <input type="checkbox" id="privacy-check" required>
                 <label for="privacy-check">
@@ -154,7 +164,7 @@
             <div id="error-msg"></div>
         </div>
 
-        <!-- FASE 2: Visualizzazione del Buono -->
+        <!-- FASE 2: Visualizzazione QR Code -->
         <div id="voucher-section">
             <h2>Il tuo Buono è Attivo!</h2>
             <p>Mostra questo QR Code in cassa al nostro staff.</p>
@@ -162,19 +172,28 @@
             <div class="voucher-card">
                 <img id="qr-code-img" src="" alt="QR Code Buono" style="max-width: 180px; height: auto;">
                 
-                <!-- CONDIZIONI DEL BUONO AGGIORNATE -->
                 <div style="background-color: #fff; border: 1px solid #e2d4bc; border-radius: 6px; padding: 12px; margin-top: 15px; text-align: left; font-size: 11px; color: #444; line-height: 1.4;">
                     <strong style="display: block; margin-bottom: 4px; color: #b8860b;">Condizioni del Buono:</strong>
-                    Questo sconto è nominativo, riservato solo a te e non cedibile a terzi. Se lo useranno altri non potrai averne un altro. Il buono va usato dal lunedì al venerdì (1 sola volta). Il buono una volta scaduto e non usato andrà perso definitivamente.
+                    Questo sconto è nominativo, riservato solo a te e non cedibile a terzi. Il buono va usato dal lunedì al venerdì (1 sola volta).
                 </div>
             </div>
 
             <div class="timer" id="countdown">Scadenza tra: 6 giorni 00:00:00</div>
         </div>
+
+        <!-- FASE 3: Schermata SWITCH dopo la Scansione -->
+        <div id="thanks-section">
+            <h2 style="color: #2e7d32;">🎉 Grazie per la visita!</h2>
+            <p>Il tuo buono è stato convalidato con successo alla cassa.</p>
+            <p>Ti è piaciuta l'esperienza da <b>Regina Farina</b>? Lasciaci una recensione su Google, ci aiuta tantissimo!</p>
+            <a href="https://g.page/r/CWvJ9qgZN_qZEBE/review" class="btn-google" target="_blank">⭐ Lascia una Recensione</a>
+        </div>
     </div>
 
     <script>
-        const webAppUrl = "https://script.google.com/macros/s/AKfycbzqw5ZcXzeP9rIRWpKUTIHT3dU05hu3x0yb6eyMfJSFUbuimIZph0eFRhIZAjuJRaYmDA/exec";
+        const webAppUrl = "https://script.google.com/macros/s/AKfycbzOq5KNIUhpImwRZIlGHeI2Y21GFA4wWbeqBc20jK63KLEhkjqxhGcPAvdkA1cIRnaOKg/exec";
+        let checkInterval = null;
+        let currentIdBuono = "";
 
         function registraUtente() {
             const nome = document.getElementById('nome').value.trim();
@@ -185,13 +204,13 @@
 
             if (!nome || !cognome || !telefono) {
                 errorDiv.style.display = "block";
-                errorDiv.textContent = "Compila tutti i campi obbligatori (Nome, Cognome e Telefono).";
+                errorDiv.textContent = "Compila tutti i campi obbligatori.";
                 return;
             }
 
             if (!privacyChecked) {
                 errorDiv.style.display = "block";
-                errorDiv.textContent = "Devi accettare l'informativa sulla privacy per continuare.";
+                errorDiv.textContent = "Accetta la privacy per proseguire.";
                 return;
             }
 
@@ -204,31 +223,20 @@
                     if (result.includes("ERRORE:")) {
                         document.querySelector('button').textContent = "Attiva il Mio Buono";
                         errorDiv.style.display = "block";
-                        // Estrae il messaggio di errore pulito
-                        let msgErrore = result.split("ERRORE:")[1] || result;
-                        errorDiv.textContent = msgErrore.replace(/<[^>]*>?/gm, '').trim();
+                        let msg = result.split("ERRORE:")[1] || result;
+                        errorDiv.textContent = msg.replace(/<[^>]*>?/gm, '').trim();
                     } else {
-                        // ESTRAZIONE SICURA DELL'ID BUONO (Trova il codice RF-xxxxxxxx)
-                        let idBuono = "";
                         const match = result.match(/RF-[a-zA-Z0-9-]+/);
-                        
-                        if (match) {
-                            idBuono = match[0];
-                        } else {
-                            // Fallback in caso di risposta pura senza HTML
-                            idBuono = result.split("|")[0].trim();
-                        }
+                        currentIdBuono = match ? match[0] : result.split("|")[0].trim();
 
                         document.getElementById('register-section').style.display = "none";
                         document.getElementById('voucher-section').style.display = "block";
 
-                        // Costruzione dell'URL di Convalida PULITO
-                        const urlConvalida = webAppUrl + "?azione=convalida&id=" + idBuono;
-                        
-                        // Generazione QR Code
+                        const urlConvalida = webAppUrl + "?azione=convalida&id=" + currentIdBuono;
                         document.getElementById('qr-code-img').src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(urlConvalida);
 
                         avviaTimer();
+                        avviaPollingConvalida();
                     }
                 })
                 .catch(err => {
@@ -236,6 +244,25 @@
                     errorDiv.style.display = "block";
                     errorDiv.textContent = "Errore di connessione. Riprova.";
                 });
+        }
+
+        function avviaPollingConvalida() {
+            // Controlla lo stato del buono ogni 3 secondi
+            checkInterval = setInterval(() => {
+                if (!currentIdBuono) return;
+                
+                fetch(webAppUrl + "?azione=verificaStato&id=" + currentIdBuono)
+                    .then(res => res.text())
+                    .then(stato => {
+                        if (stato.trim() === "USATO") {
+                            clearInterval(checkInterval); // Ferma il controllo
+                            // SWITCH Schermata!
+                            document.getElementById('voucher-section').style.display = "none";
+                            document.getElementById('thanks-section').style.display = "block";
+                        }
+                    })
+                    .catch(e => console.log(e));
+            }, 3000);
         }
 
         function avviaTimer() {
