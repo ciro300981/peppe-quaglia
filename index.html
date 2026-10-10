@@ -233,7 +233,7 @@
                     document.getElementById('qr-code-img').src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(urlConvalida);
 
                     avviaTimer();
-                    avviaPollingJSONP();
+                    avviaPollingRobusto();
                 })
                 .catch(err => {
                     document.querySelector('button').textContent = "Attiva il Mio Buono";
@@ -242,28 +242,26 @@
                 });
         }
 
-        window.gestisciRispostaStato = function(data) {
-            if (data && data.stato === "USATO") {
-                if (checkInterval) clearInterval(checkInterval);
-                
-                document.getElementById('voucher-section').style.display = "none";
-                document.getElementById('thanks-section').style.display = "block";
-            }
-        };
-
-        function avviaPollingJSONP() {
+        // Polling diretto con fetch gestito in modalità text cross-origin
+        function avviaPollingRobusto() {
             if (checkInterval) clearInterval(checkInterval);
 
             checkInterval = setInterval(() => {
                 if (!currentIdBuono) return;
 
-                const oldScript = document.getElementById('jsonp-script');
-                if (oldScript) oldScript.remove();
-
-                const script = document.createElement('script');
-                script.id = 'jsonp-script';
-                script.src = webAppUrl + "?azione=verificaStatoJSONP&id=" + encodeURIComponent(currentIdBuono) + "&callback=gestisciRispostaStato&t=" + new Date().getTime();
-                document.body.appendChild(script);
+                fetch(webAppUrl + "?azione=verificaStato&id=" + encodeURIComponent(currentIdBuono))
+                    .then(response => response.text())
+                    .then(text => {
+                        let stato = text.trim();
+                        if (stato.includes("USATO") && !stato.includes("NON USATO")) {
+                            clearInterval(checkInterval);
+                            document.getElementById('voucher-section').style.display = "none";
+                            document.getElementById('thanks-section').style.display = "block";
+                        }
+                    })
+                    .catch(error => {
+                        // Ignora eventuali micro-errori di rete temporanei e riprova al ciclo successivo
+                    });
             }, 2500);
         }
 
