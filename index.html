@@ -164,7 +164,7 @@
             <div id="error-msg"></div>
         </div>
 
-        <!-- FASE 2: Visualizzazione QR Code -->
+        <!-- FASE 2: Visualizzazione QR Code (CLIENTE) -->
         <div id="voucher-section">
             <h2>Il tuo Buono è Attivo!</h2>
             <p>Mostra questo QR Code in cassa al nostro staff.</p>
@@ -181,7 +181,7 @@
             <div class="timer" id="countdown">Scadenza tra: 6 giorni 00:00:00</div>
         </div>
 
-        <!-- FASE 3: Schermata SWITCH sul telefono del cliente -->
+        <!-- FASE 3: Schermata SWITCH sul telefono del CLIENTE -->
         <div id="thanks-section">
             <h2 style="color: #2e7d32;">🎉 Grazie per la visita!</h2>
             <p>Il tuo buono è stato convalidato con successo alla cassa.</p>
@@ -233,7 +233,7 @@
                     document.getElementById('qr-code-img').src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(urlConvalida);
 
                     avviaTimer();
-                    avviaPollingRobusto();
+                    avviaPollingInfallibile();
                 })
                 .catch(err => {
                     document.querySelector('button').textContent = "Attiva il Mio Buono";
@@ -242,27 +242,30 @@
                 });
         }
 
-        // Polling diretto con fetch gestito in modalità text cross-origin
-        function avviaPollingRobusto() {
+        // Funzione globale di risposta ricevuta da Google
+        window.eseguiSwitchCliente = function(data) {
+            if (data && data.stato === "USATO") {
+                if (checkInterval) clearInterval(checkInterval);
+                document.getElementById('voucher-section').style.display = "none";
+                document.getElementById('thanks-section').style.display = "block";
+            }
+        };
+
+        // Iniezione Script JSONP con timestamp univoco anti-cache
+        function avviaPollingInfallibile() {
             if (checkInterval) clearInterval(checkInterval);
 
             checkInterval = setInterval(() => {
                 if (!currentIdBuono) return;
 
-                fetch(webAppUrl + "?azione=verificaStato&id=" + encodeURIComponent(currentIdBuono))
-                    .then(response => response.text())
-                    .then(text => {
-                        let stato = text.trim();
-                        if (stato.includes("USATO") && !stato.includes("NON USATO")) {
-                            clearInterval(checkInterval);
-                            document.getElementById('voucher-section').style.display = "none";
-                            document.getElementById('thanks-section').style.display = "block";
-                        }
-                    })
-                    .catch(error => {
-                        // Ignora eventuali micro-errori di rete temporanei e riprova al ciclo successivo
-                    });
-            }, 2500);
+                const vecchioScript = document.getElementById('script-polling-jsonp');
+                if (vecchioScript) vecchioScript.remove();
+
+                const nuovoScript = document.createElement('script');
+                nuovoScript.id = 'script-polling-jsonp';
+                nuovoScript.src = webAppUrl + "?azione=verificaStatoJSONP&id=" + encodeURIComponent(currentIdBuono) + "&callback=eseguiSwitchCliente&nocache=" + new Date().getTime();
+                document.body.appendChild(nuovoScript);
+            }, 2000);
         }
 
         function avviaTimer() {
