@@ -4,128 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Regina Farina - Buono Sconto</title>
+    <!-- Libreria ufficiale Pusher CDN -->
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f7f5f0;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .container {
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            padding: 30px;
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-            box-sizing: border-box;
-        }
-        .logo {
-            max-width: 130px;
-            margin-bottom: 20px;
-        }
-        h2 {
-            color: #2c2c2c;
-            margin-bottom: 10px;
-            font-size: 22px;
-        }
-        p {
-            color: #666;
-            font-size: 14px;
-            line-height: 1.5;
-            margin-bottom: 20px;
-        }
-        .form-group {
-            text-align: left;
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #444;
-            font-size: 13px;
-        }
-        input[type="text"], input[type="tel"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 15px;
-            box-sizing: border-box;
-            background-color: #fafafa;
-        }
-        input:focus {
-            border-color: #c5a059;
-            outline: none;
-            background-color: #fff;
-        }
-        .privacy-group {
-            display: flex;
-            align-items: flex-start;
-            text-align: left;
-            margin: 20px 0;
-            font-size: 12px;
-            color: #666;
-        }
-        .privacy-group input {
-            margin-top: 2px;
-            margin-right: 10px;
-        }
-        button {
-            background-color: #1a1a1a;
-            color: white;
-            border: none;
-            padding: 14px;
-            width: 100%;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        button:hover {
-            background-color: #333;
-        }
-        #error-msg {
-            color: #d9534f;
-            font-size: 13px;
-            margin-top: 10px;
-            display: none;
-        }
-        #voucher-section, #thanks-section {
-            display: none;
-        }
-        .voucher-card {
-            background: #fff8eb;
-            border: 2px dashed #c5a059;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 15px;
-        }
-        .timer {
-            font-weight: bold;
-            color: #d9534f;
-            font-size: 16px;
-            margin-top: 15px;
-        }
-        .btn-google {
-            display: inline-block;
-            background-color: #4285F4;
-            color: white;
-            text-decoration: none;
-            padding: 14px 20px;
-            border-radius: 30px;
-            font-weight: bold;
-            font-size: 15px;
-            margin-top: 15px;
-            box-shadow: 0 4px 10px rgba(66,133,244,0.3);
-        }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f7f5f0; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); padding: 30px; width: 100%; max-width: 400px; text-align: center; box-sizing: border-box; }
+        .logo { max-width: 130px; margin-bottom: 20px; }
+        h2 { color: #2c2c2c; font-size: 22px; margin-bottom: 10px; }
+        p { color: #666; font-size: 14px; line-height: 1.5; margin-bottom: 20px; }
+        .form-group { text-align: left; margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: #444; font-size: 13px; }
+        input[type="text"], input[type="tel"] { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; box-sizing: border-box; background-color: #fafafa; }
+        button { background-color: #1a1a1a; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        #error-msg { color: #d9534f; font-size: 13px; margin-top: 10px; display: none; }
+        #voucher-section, #thanks-section { display: none; }
+        .voucher-card { background: #fff8eb; border: 2px dashed #c5a059; border-radius: 10px; padding: 20px; margin-top: 15px; }
+        .timer { font-weight: bold; color: #d9534f; font-size: 15px; margin-top: 15px; }
+        .btn-google { display: inline-block; background-color: #4285F4; color: white; text-decoration: none; padding: 14px 20px; border-radius: 30px; font-weight: bold; font-size: 15px; margin-top: 15px; box-shadow: 0 4px 10px rgba(66,133,244,0.3); }
     </style>
 </head>
 <body>
@@ -133,55 +28,44 @@
     <div class="container">
         <img src="logo.png" alt="Regina Farina Logo" class="logo">
 
-        <!-- FASE 1: Form di Registrazione -->
+        <!-- FASE 1: Form Registrazione -->
         <div id="register-section">
             <h2>Buono Sconto 30%</h2>
-            <p>Inserisci i tuoi dati per attivare subito il tuo buono sconto esclusivo per te e la tua famiglia!</p>
+            <p>Inserisci i tuoi dati per attivare subito il tuo buono sconto!</p>
             
             <div class="form-group">
                 <label>Nome</label>
                 <input type="text" id="nome" placeholder="es. Mario" required>
             </div>
-
             <div class="form-group">
                 <label>Cognome</label>
                 <input type="text" id="cognome" placeholder="es. Rossi" required>
             </div>
-            
             <div class="form-group">
                 <label>Numero di Telefono</label>
                 <input type="tel" id="telefono" placeholder="es. 3331234567" required>
             </div>
-
-            <div class="privacy-group">
-                <input type="checkbox" id="privacy-check" required>
-                <label for="privacy-check">
-                    Acconsento al trattamento dei dati personali ai sensi del GDPR (Regolamento UE 2016/679) per l'invio del buono sconto e comunicazioni commerciali da parte di Regina Farina.
-                </label>
+            <div style="display:flex; text-align:left; margin:20px 0; font-size:12px; color:#666;">
+                <input type="checkbox" id="privacy-check" style="margin-right:10px;" required>
+                <label for="privacy-check">Acconsento al trattamento dei dati personali ai sensi del GDPR.</label>
             </div>
 
             <button onclick="registraUtente()">Attiva il Mio Buono</button>
             <div id="error-msg"></div>
         </div>
 
-        <!-- FASE 2: Visualizzazione QR Code (CLIENTE) -->
+        <!-- FASE 2: QR Code Cliente -->
         <div id="voucher-section">
             <h2>Il tuo Buono è Attivo!</h2>
             <p>Mostra questo QR Code in cassa al nostro staff.</p>
             
             <div class="voucher-card">
                 <img id="qr-code-img" src="" alt="QR Code Buono" style="max-width: 180px; height: auto;">
-                
-                <div style="background-color: #fff; border: 1px solid #e2d4bc; border-radius: 6px; padding: 12px; margin-top: 15px; text-align: left; font-size: 11px; color: #444; line-height: 1.4;">
-                    <strong style="display: block; margin-bottom: 4px; color: #b8860b;">Condizioni del Buono:</strong>
-                    Questo sconto è nominativo, riservato solo a te e non cedibile a terzi. Il buono va usato dal lunedì al venerdì (1 sola volta).
-                </div>
             </div>
-
             <div class="timer" id="countdown">Scadenza tra: 6 giorni 00:00:00</div>
         </div>
 
-        <!-- FASE 3: Schermata SWITCH sul telefono del CLIENTE -->
+        <!-- FASE 3: Schermata Finale Cliente -->
         <div id="thanks-section">
             <h2 style="color: #2e7d32;">🎉 Grazie per la visita!</h2>
             <p>Il tuo buono è stato convalidato con successo alla cassa.</p>
@@ -192,7 +76,9 @@
 
     <script>
         const webAppUrl = "https://script.google.com/macros/s/AKfycbyXtyEP-QDK1c726vGecD7HiOlbaXun4sltbCF1Myifkvv52ntFea4IKQNxHTl90lKS3Q/exec";
-        let checkInterval = null;
+        const PUSHER_KEY = "f9dcf1650cf96052511e"; 
+        const PUSHER_CLUSTER = "eu"; 
+        
         let currentIdBuono = "";
 
         function registraUtente() {
@@ -202,15 +88,9 @@
             const privacyChecked = document.getElementById('privacy-check').checked;
             const errorDiv = document.getElementById('error-msg');
 
-            if (!nome || !cognome || !telefono) {
+            if (!nome || !cognome || !telefono || !privacyChecked) {
                 errorDiv.style.display = "block";
-                errorDiv.textContent = "Compila tutti i campi obbligatori.";
-                return;
-            }
-
-            if (!privacyChecked) {
-                errorDiv.style.display = "block";
-                errorDiv.textContent = "Accetta l'informativa privacy.";
+                errorDiv.textContent = "Compila tutti i campi ed accetta la privacy.";
                 return;
             }
 
@@ -233,58 +113,33 @@
                     document.getElementById('qr-code-img').src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(urlConvalida);
 
                     avviaTimer();
-                    avviaPollingInfallibile();
-                })
-                .catch(err => {
-                    document.querySelector('button').textContent = "Attiva il Mio Buono";
-                    errorDiv.style.display = "block";
-                    errorDiv.textContent = "Errore di connessione. Riprova.";
+                    connettiPusher();
                 });
         }
 
-        // Funzione globale richiamata direttamente dall'infezione dello script JSONP
-        window.gestisciRispostaStato = function(data) {
-            if (data && data.stato === "USATO") {
-                if (checkInterval) clearInterval(checkInterval);
-                document.getElementById('voucher-section').style.display = "none";
-                document.getElementById('thanks-section').style.display = "block";
-            }
-        };
+        // Connessione WebSocket in tempo reale
+        function connettiPusher() {
+            const pusher = new Pusher(PUSHER_KEY, { cluster: PUSHER_CLUSTER });
+            const channel = pusher.subscribe("buono-" + currentIdBuono);
 
-        // Polling JSONP anti-cache ogni 2 secondi
-        function avviaPollingInfallibile() {
-            if (checkInterval) clearInterval(checkInterval);
-
-            checkInterval = setInterval(() => {
-                if (!currentIdBuono) return;
-
-                const vecchioScript = document.getElementById('jsonp-script');
-                if (vecchioScript) vecchioScript.remove();
-
-                const script = document.createElement('script');
-                script.id = 'jsonp-script';
-                // L'aggiunta di _t=timestamp forza il browser a saltare la cache ad ogni richiesta
-                script.src = webAppUrl + "?azione=verificaStatoJSONP&id=" + encodeURIComponent(currentIdBuono) + "&callback=gestisciRispostaStato&_t=" + new Date().getTime();
-                document.body.appendChild(script);
-            }, 2000);
+            channel.bind("convalidato", function(data) {
+                if (data && data.stato === "USATO") {
+                    document.getElementById('voucher-section').style.display = "none";
+                    document.getElementById('thanks-section').style.display = "block";
+                }
+            });
         }
 
         function avviaTimer() {
             let tempoRimanente = 6 * 24 * 60 * 60;
-            const timerDisplay = document.getElementById('countdown');
-
             setInterval(() => {
-                if (tempoRimanente <= 0) {
-                    timerDisplay.textContent = "Buono Scaduto";
-                    return;
-                }
+                if (tempoRimanente <= 0) return;
                 tempoRimanente--;
-                let giorni = Math.floor(tempoRimanente / (3600 * 24));
-                let ore = Math.floor((tempoRimanente % (3600 * 24)) / 3600);
+                let giorni = Math.floor(tempoRimanente / 86400);
+                let ore = Math.floor((tempoRimanente % 86400) / 3600);
                 let minuti = Math.floor((tempoRimanente % 3600) / 60);
                 let sec = tempoRimanente % 60;
-
-                timerDisplay.textContent = `Scadenza tra: ${giorni}g ${ore}h ${minuti}m ${sec}s`;
+                document.getElementById('countdown').textContent = `Scadenza tra: ${giorni}g ${ore}h ${minuti}m ${sec}s`;
             }, 1000);
         }
     </script>
