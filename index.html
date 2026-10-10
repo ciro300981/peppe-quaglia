@@ -181,7 +181,7 @@
             <div class="timer" id="countdown">Scadenza tra: 6 giorni 00:00:00</div>
         </div>
 
-        <!-- FASE 3: Schermata SWITCH dopo la Scansione -->
+        <!-- FASE 3: Schermata SWITCH sul telefono del cliente -->
         <div id="thanks-section">
             <h2 style="color: #2e7d32;">🎉 Grazie per la visita!</h2>
             <p>Il tuo buono è stato convalidato con successo alla cassa.</p>
@@ -217,7 +217,6 @@
             errorDiv.style.display = "none";
             document.querySelector('button').textContent = "Generazione in corso...";
 
-            // Generazione dell'ID client-side
             currentIdBuono = "RF-" + Math.random().toString(36).substring(2, 10);
 
             const urlReg = webAppUrl + "?azione=registra&nome=" + encodeURIComponent(nome) + 
@@ -225,7 +224,6 @@
                            "&telefono=" + encodeURIComponent(telefono) + 
                            "&id_custom=" + currentIdBuono;
 
-            // Invio no-cors privo di errori di connessione
             fetch(urlReg, { mode: 'no-cors' })
                 .then(() => {
                     document.getElementById('register-section').style.display = "none";
@@ -244,18 +242,15 @@
                 });
         }
 
-        // Callback automatica richiamata via JSONP
         window.gestisciRispostaStato = function(data) {
             if (data && data.stato === "USATO") {
                 if (checkInterval) clearInterval(checkInterval);
                 
-                // Cambia la vista sulla pagina di ringraziamento
                 document.getElementById('voucher-section').style.display = "none";
                 document.getElementById('thanks-section').style.display = "block";
             }
         };
 
-        // Iniezione dinamica script JSONP (Sblocca la lettura cross-origin su mobile)
         function avviaPollingJSONP() {
             if (checkInterval) clearInterval(checkInterval);
 
