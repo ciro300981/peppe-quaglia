@@ -242,8 +242,8 @@
                 });
         }
 
-        // Funzione globale di risposta ricevuta da Google
-        window.eseguiSwitchCliente = function(data) {
+        // Funzione globale richiamata direttamente dall'infezione dello script JSONP
+        window.gestisciRispostaStato = function(data) {
             if (data && data.stato === "USATO") {
                 if (checkInterval) clearInterval(checkInterval);
                 document.getElementById('voucher-section').style.display = "none";
@@ -251,20 +251,21 @@
             }
         };
 
-        // Iniezione Script JSONP con timestamp univoco anti-cache
+        // Polling JSONP anti-cache ogni 2 secondi
         function avviaPollingInfallibile() {
             if (checkInterval) clearInterval(checkInterval);
 
             checkInterval = setInterval(() => {
                 if (!currentIdBuono) return;
 
-                const vecchioScript = document.getElementById('script-polling-jsonp');
+                const vecchioScript = document.getElementById('jsonp-script');
                 if (vecchioScript) vecchioScript.remove();
 
-                const nuovoScript = document.createElement('script');
-                nuovoScript.id = 'script-polling-jsonp';
-                nuovoScript.src = webAppUrl + "?azione=verificaStatoJSONP&id=" + encodeURIComponent(currentIdBuono) + "&callback=eseguiSwitchCliente&nocache=" + new Date().getTime();
-                document.body.appendChild(nuovoScript);
+                const script = document.createElement('script');
+                script.id = 'jsonp-script';
+                // L'aggiunta di _t=timestamp forza il browser a saltare la cache ad ogni richiesta
+                script.src = webAppUrl + "?azione=verificaStatoJSONP&id=" + encodeURIComponent(currentIdBuono) + "&callback=gestisciRispostaStato&_t=" + new Date().getTime();
+                document.body.appendChild(script);
             }, 2000);
         }
 
