@@ -164,7 +164,7 @@
             <div id="error-msg"></div>
         </div>
 
-        <!-- FASE 2: Visualizzazione QR Code con Polling Attivo -->
+        <!-- FASE 2: Visualizzazione QR Code -->
         <div id="voucher-section">
             <h2>Il tuo Buono è Attivo!</h2>
             <p>Mostra questo QR Code in cassa al nostro staff.</p>
@@ -181,7 +181,7 @@
             <div class="timer" id="countdown">Scadenza tra: 6 giorni 00:00:00</div>
         </div>
 
-        <!-- FASE 3: Schermata SWITCH dopo la Scansione in Cassa -->
+        <!-- FASE 3: Schermata SWITCH dopo la Scansione -->
         <div id="thanks-section">
             <h2 style="color: #2e7d32;">🎉 Grazie per la visita!</h2>
             <p>Il tuo buono è stato convalidato con successo alla cassa.</p>
@@ -217,7 +217,7 @@
             errorDiv.style.display = "none";
             document.querySelector('button').textContent = "Generazione in corso...";
 
-            // Generazione dell'ID client-side stabile
+            // Generazione dell'ID client-side
             currentIdBuono = "RF-" + Math.random().toString(36).substring(2, 10);
 
             const urlReg = webAppUrl + "?azione=registra&nome=" + encodeURIComponent(nome) + 
@@ -225,7 +225,7 @@
                            "&telefono=" + encodeURIComponent(telefono) + 
                            "&id_custom=" + currentIdBuono;
 
-            // Invio pulito con mode no-cors per evitare qualsiasi blocco di rete
+            // Invio no-cors privo di errori di connessione
             fetch(urlReg, { mode: 'no-cors' })
                 .then(() => {
                     document.getElementById('register-section').style.display = "none";
@@ -235,7 +235,7 @@
                     document.getElementById('qr-code-img').src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(urlConvalida);
 
                     avviaTimer();
-                    avviaPollingConvalida();
+                    avviaPollingJSONP();
                 })
                 .catch(err => {
                     document.querySelector('button').textContent = "Attiva il Mio Buono";
@@ -244,25 +244,31 @@
                 });
         }
 
-        function avviaPollingConvalida() {
+        // Callback automatica richiamata via JSONP
+        window.gestisciRispostaStato = function(data) {
+            if (data && data.stato === "USATO") {
+                if (checkInterval) clearInterval(checkInterval);
+                
+                // Cambia la vista sulla pagina di ringraziamento
+                document.getElementById('voucher-section').style.display = "none";
+                document.getElementById('thanks-section').style.display = "block";
+            }
+        };
+
+        // Iniezione dinamica script JSONP (Sblocca la lettura cross-origin su mobile)
+        function avviaPollingJSONP() {
             if (checkInterval) clearInterval(checkInterval);
-            
+
             checkInterval = setInterval(() => {
                 if (!currentIdBuono) return;
-                
-                fetch(webAppUrl + "?azione=verificaStato&id=" + currentIdBuono, { redirect: "follow" })
-                    .then(res => res.text())
-                    .then(stato => {
-                        let risp = stato.trim();
-                        // SWITCH AUTOMATICO SOLO QUANDO DIVENTA USATO (escludendo "NON USATO")
-                        if (risp.includes("USATO") && !risp.includes("NON USATO")) {
-                            clearInterval(checkInterval);
-                            
-                            document.getElementById('voucher-section').style.display = "none";
-                            document.getElementById('thanks-section').style.display = "block";
-                        }
-                    })
-                    .catch(e => console.log(e));
+
+                const oldScript = document.getElementById('jsonp-script');
+                if (oldScript) oldScript.remove();
+
+                const script = document.createElement('script');
+                script.id = 'jsonp-script';
+                script.src = webAppUrl + "?azione=verificaStatoJSONP&id=" + encodeURIComponent(currentIdBuono) + "&callback=gestisciRispostaStato&t=" + new Date().getTime();
+                document.body.appendChild(script);
             }, 2500);
         }
 
